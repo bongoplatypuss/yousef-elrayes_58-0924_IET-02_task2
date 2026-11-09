@@ -1,0 +1,7 @@
+# Task 2 — Data Engineering
+
+**Name:** Yousef Elrayes  
+**Student ID:** 58-0924  
+**Major / lab:** IET-02
+
+The notebook reads 283 lines from `bookings.jsonl` and leaves 259 valid bookings. It quarantines 24 records: 3 duplicate booking IDs, 4 totals that do not match tickets, 3 bookings made on or after the event date, 4 malformed student IDs, 2 invalid event objects, 3 unsupported ticket types, 3 ticket quantities below one, and 2 empty ticket lists. The `promo_code` drift first occurs in file order at line 4 (`B0004`, booked 2026-11-01); the earliest timestamp carrying the field is 2026-10-20 (`B0125`), because file order is not chronological. It is optional in Pydantic and missing values become null in flattened bookings. Validation precedes duplicate detection so malformed rows do not reserve IDs and suppress later valid bookings. For this file, swapping the order does not change the counts: all three repeated IDs have valid first occurrences. A different file could change if an invalid record appeared first for an ID. The notebook keeps the first valid copy. It checks booking ID uniqueness and per-booking ticket sums before DuckDB creates the dimensions and ticket-entry fact. Booking `total` is not a fact column: each ticket row carries its own amount, so summing a repeated booking total would count that total once per ticket entry and overstate revenue. Confirmed ticket counts and revenue are queried from the star. The dimensions are written as separate Parquet files and the fact is partitioned into month folders under `star/`.
